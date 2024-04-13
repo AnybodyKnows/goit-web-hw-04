@@ -43,7 +43,14 @@
 
           <div class="row mb-3">
             <label for="floatingInput">Your nickname</label>
-            <input type="text" class="form-control" id="floatingInput" name="username"/>
+            <input type="text"
+                   class="form-control"
+                   id="floatingInput"
+                   name="username"
+                   pattern="[^&=]*"
+                   placeholder="Your nickname"
+                   title="Denied symbols & and ="
+            />
           </div>
 
           <div class="row mb-3 h-100">
