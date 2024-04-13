@@ -24,4 +24,4 @@ COPY . .
 EXPOSE 3000
 
 # Запустимо наш застосунок всередині контейнера
-CMD ["python", "08_bot_helper.py"]
+CMD ["python", "main.py"]

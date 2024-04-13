@@ -7,18 +7,17 @@ import json
 import logging
 from threading import Thread
 import socket
+from datetime import datetime
 
+# command to build docker image:
+# docker build . -t anybodyknows/http-server
 
 BASE_DIR = Path()
 BUFFER_SIZE = 1024
 HTTP_PORT = 3000
 HTTP_HOST = '0.0.0.0'
 SOCKET_HOST = "127.0.0.1"
-SOCKET_PORT = 4000
-
-
-
-jinja = Environment(loader=FileSystemLoader("templates"))
+SOCKET_PORT = 5000
 
 
 class GoitFramework(BaseHTTPRequestHandler):
@@ -54,17 +53,6 @@ class GoitFramework(BaseHTTPRequestHandler):
         with open(filename, "rb") as file:
             self.wfile.write(file.read())
 
-    def render_template(self, filename, status_code=200):
-        self.send_response(status_code)
-        self.send_header('Content-Type', 'text/html')
-        self.end_headers()
-        with open("storage/db.json", "r", encoding="utf-8") as file:
-            data = json.load(file)
-
-        template = jinja.get_template(filename)
-        html = template.render(blogs=data)
-        self.wfile.write(html.encode())
-
     def send_static(self, filename, status_code=200):
         self.send_response(status_code)
         mime_type = mimetypes.guess_type(filename)[0]
@@ -77,12 +65,14 @@ class GoitFramework(BaseHTTPRequestHandler):
             self.wfile.write(file.read())
 
 
-def save_message(data):
+def save_message(data, timestamp):
     parse_data = urllib.parse.unquote_plus(data.decode())
 
     try:
         parse_dict = {key: value for key, value in [el.split('=') for el in parse_data.split('&')]}
-        with open("storage/data.json", 'w', encoding='utf-8') as file:
+        parse_dict = {timestamp: parse_dict}
+        print(parse_dict)
+        with open("storage/data.json", 'a', encoding='utf-8') as file:
             json.dump(parse_dict, file, ensure_ascii=False, indent=4)
     except ValueError as err:
         logging.error(err)
@@ -98,7 +88,7 @@ def run_socket_server(host, port):
         while True:
             msg, address = socket_server.recvfrom(BUFFER_SIZE)
             logging.info(f"Socket received{address}: {msg}")
-            save_message(msg)
+            save_message(msg, str(datetime.now()))
     except KeyboardInterrupt:
         socket_server.close()
 
